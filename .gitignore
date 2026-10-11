@@ -5,3 +5,4 @@ SHPORA
 *.session
 *.session-journal
 __pycache__/
+/.idea
