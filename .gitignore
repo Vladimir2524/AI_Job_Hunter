@@ -6,3 +6,6 @@ SHPORA
 *.session-journal
 __pycache__/
 /.idea
+session_name.session
+/session_name.session
+session_name.session
