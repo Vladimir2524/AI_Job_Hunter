@@ -1,3 +1,5 @@
+from turtledemo.paint import changecolor
+
 from telethon import TelegramClient
 import os
 import asyncio
@@ -16,6 +18,12 @@ API_HASH = os.getenv("API_HASH")
 db = Database()
 client = TelegramClient("session_name", API_ID, API_HASH)
 
+CHANNELS = [
+    'rabota_razrabotchikn',
+    'python_jobs',
+    'rabota_razrabotchikc',
+    'rabotaw_razrabotchik'
+]
 
 async def find_job():
     """
@@ -24,31 +32,39 @@ async def find_job():
 
     """
     print("Загружаем посты из Telegram...")
-    messages = await client.get_messages('@rabota_razrabotchikc', limit=5)
+    for channel in CHANNELS:
+        print(f"\n📡 Сканируем канал: {channel}")
+        await client.get_messages(channel)
 
-    for msg in messages:
-        job_text = msg.text or ""
+        messages = await client.get_messages(channel, limit=5)
+        for msg in messages:
+            job_text = msg.text or ""
 
-        if await db.is_job_processed(msg.id):
-            print(f"⏩ Пост {msg.id} уже был обработан, пропускаем.")
-            continue
+            if await db.is_job_processed(msg.id):
+                print(f"⏩ Пост {msg.id} уже был обработан, пропускаем.")
+                continue
 
-        if len(job_text) < 30:
-            continue
+            if len(job_text) < 30:
+                continue
 
-        print(f'\n Обрабатываем пост ID {msg.id}...')
+            print(f'\n Обрабатываем пост ID {msg.id}...')
 
-        result = await analyze_job(job_text)
-        await db.add_processed_job(msg.id)
+            result = await analyze_job(job_text)
+            await db.add_processed_job(msg.id)
 
-        if result.get("is_match") is True:
-            print("Найдена подходящая вакансия!")
-            print(f"Причина: {result.get('reason')}")
-            print(f"Стек: {result.get('tech_stack')}")
-        else:
-            print(f'Не подходит: {result.get("reason")}')
+            if result.get("is_match") is True:
 
-        await asyncio.sleep(1)
+                clean_channel = channel.replace("@", "")
+                post_url = f"https://t.me/{clean_channel}/{msg.id}"
+
+                print("Найдена подходящая вакансия!")
+                print(f"🔗 Ссылка на пост: {post_url}")
+                print(f"Причина: {result.get('reason')}")
+                print(f"Стек: {result.get('tech_stack')}")
+            else:
+                print(f'Не подходит: {result.get("reason")}')
+
+            await asyncio.sleep(1)
 
 
 async def main():
