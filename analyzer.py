@@ -16,14 +16,22 @@ async def analyze_job(job_text: str):
 
     # Наш профиль, чтобы ии знал с чем сравнить
     user_profile = """
-    Стек : Python, AsyncIO, aiogram 3, Telethon, SQlite, FastApi.
-    Цель: Junior Python Developer
+    Роль: Junior / Junior+ Python Backend / Automation Developer
+    Основной стек: Python 3, AsyncIO, FastAPI, aiogram 3, Telethon, PostgreSQL (asyncpg), SQLite, Git, Pytest.
+    Навыки: Работа с REST API, Webhooks, JSON/CSV, ООП, асинхронный парсинг, интеграция LLM API, базовый Docker, Linux.
+    Опыт: Есть 2 мощных завершенных проекта (SteamTrustFactor с 100% pytest покрытием и AI Job Hunter на асинхронном бэкенде).
     """
 
     prompt = f"""
-    Ты - HR-ассистент. Проанализируй вакансию и ответь, подходит ли она кандидату.
+    Ты — карьерый ментор и HR-эксперт. Оцени, подходит ли вакансия кандидату.
     Профиль кандидата: {user_profile}
     Текст вакансии: {job_text}
+    
+    ПРАВИЛА ОЦЕНКИ:
+    1. Ставь "is_match": true, если вакансия на Python / Backend / Automation / Junior / Junior+ / Trainee, и основной стек совпадает с кандидатом (Python, AsyncIO, FastAPI, Postgres, API, Боты).
+    2. НЕ бракуй вакансию, если там просят "1-2 года опыта", но стек наш. Для Джуна это норма.
+    3. НЕ бракуй вакансию из-за отсутствия Docker/Redis/Linux — кандидат быстро подтянет это на практике.
+    4. Ставь "is_match": false СТРОГО если: это Senior/Lead позиция (от 3+ лет опыта), абсолютно другой язык (C++, Java, PHP, Go), или непрограммистская вакансия (курьер, мануальный тестировщик, менеджер продаж).
     
     ответь СТРОГО в формате JSON:
     {{

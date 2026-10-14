@@ -7,10 +7,14 @@ from dotenv import load_dotenv
 from analyzer import analyze_job
 import asyncpg
 from database.db import Database
-
+from aiogram import Bot
 
 
 load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+MY_TELEGRAM_ID = int(os.getenv("MY_TELEGRAM_ID"))
+bot = Bot(token=BOT_TOKEN)
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
@@ -23,6 +27,9 @@ CHANNELS = [
     'python_jobs',
     'rabota_razrabotchikc',
     'rabotaw_razrabotchik'
+    'backend_jobs_feed',
+    'python_job_feed',
+    'tproger_itjobs',
 ]
 
 async def find_job():
@@ -57,10 +64,9 @@ async def find_job():
                 clean_channel = channel.replace("@", "")
                 post_url = f"https://t.me/{clean_channel}/{msg.id}"
 
-                print("Найдена подходящая вакансия!")
-                print(f"🔗 Ссылка на пост: {post_url}")
-                print(f"Причина: {result.get('reason')}")
-                print(f"Стек: {result.get('tech_stack')}")
+                text = f"🔥 **НАЙДЕНА ВАКАНСИЯ!**\n\n**Причина:** {result.get('reason')}\n**Стек:** {result.get('tech_stack')}\n\n🔗 [Ссылка на пост]({post_url})"
+                await bot.send_message(chat_id=MY_TELEGRAM_ID, text=text, parse_mode="Markdown")
+
             else:
                 print(f'Не подходит: {result.get("reason")}')
 
