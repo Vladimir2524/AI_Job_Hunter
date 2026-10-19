@@ -45,3 +45,7 @@ class Database:
             message_id,
         )
 
+    async def get_jobs(self):
+        sql = "SELECT id, message_id, created_at FROM channels ORDER BY id DESC LIMIT 50;"
+        return await self.conn.fetch(sql)
+

@@ -1,5 +1,3 @@
-from turtledemo.paint import changecolor
-
 from telethon import TelegramClient
 import os
 import asyncio
