@@ -7,6 +7,8 @@ import asyncpg
 from database.db import Database
 from aiogram import Bot
 from config import CHANNELS
+from rich.console import Console
+from rich.panel import Panel
 
 
 load_dotenv()
@@ -20,6 +22,7 @@ API_HASH = os.getenv("API_HASH")
 
 client = TelegramClient("session_name", API_ID, API_HASH)
 
+console = Console()
 
 async def find_job(db):
     """
@@ -49,6 +52,10 @@ async def find_job(db):
 
 
                     if result.get("is_match") is True:
+                        console.print('[bold green]Ура![/bold green]Вакансия найдена!')
+                        console.print(Panel(job_text, title='Junior Python', border_style='green'))
+
+
                         clean_channel = channel.replace("@", "")
                         post_url = f"https://t.me/{clean_channel}/{msg.id}"
 
@@ -56,7 +63,7 @@ async def find_job(db):
                         await bot.send_message(chat_id=MY_TELEGRAM_ID, text=text, parse_mode="Markdown")
 
                     else:
-                        print(f'Не подходит: {result.get("reason")}')
+                        console.print(f"[bold red]❌ Не подходит:[/bold red] {result.get('reason')}")
 
                     await asyncio.sleep(1)
 
