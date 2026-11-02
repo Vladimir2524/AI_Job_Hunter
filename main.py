@@ -1,32 +1,27 @@
-from analyzer import analyze_job
 import asyncio
+
+from client import find_job
+from database.db import Database
 
 
 async def main():
-    job_text = "Текст вакансии..."
+    try:
+        db = Database()
+        await db.connect()
+        await db.init_db()
 
-    # ТЕПЕРЬ МОЖНО: мы внутри async def!
-    analysis = await analyze_job(job_text)
-    print(analysis)
+        print("Запускаем парсер..")
+        await find_job(db)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+    except Exception as e:
+        print(f'Ошибка в работе приложения: {e}')
 
-"""
-                  ┌────────────────────┐
-                  │   user_profile.py  │  (Твой стек, стоп-слова)
-                  └─────────┬──────────┘
-                            │ (Импорт данных)
-                            ▼
-┌─────────────┐   Текст   ┌────────────────────┐   JSON   ┌─────────────┐
-│  client.py  ├──────────►│    analyzer.py     ├─────────►│    db.py    │
-│ (Telethon)  │  вакансии │ (Groq + LLaMA 3)   │  оценка  │ (PostgreSQL)│
-└──────┬──────┘           └────────────────────┘          └──────▲──────┘
-       │                                                         │
-       └────────────────── Запуск и Пул БД ──────────────────────┘
-                                  │
-                       ┌──────────┴──────────┐
-                       │       main.py       │  (Дирижер завода)
-                       └─────────────────────┘
-"""
+
+    finally:
+        print('Закрываем соеденение с бд...')
+        await db.close()
+        print('Работа завершена 👋')
+
+asyncio.run(main())
+

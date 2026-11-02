@@ -1,9 +1,8 @@
-import dotenv
-from dotenv import load_dotenv
 from groq import AsyncGroq
 import os
 import json
 from dotenv import load_dotenv
+from user_profile import SKILLS, BLACKLIST, TARGET_ROLES
 
 load_dotenv()
 
@@ -15,16 +14,28 @@ async def analyze_job(job_text: str):
     """
 
     # Наш профиль, чтобы ии знал с чем сравнить
-    user_profile = """
-    Роль: Junior / Junior+ Python Backend / Automation Developer
-    Основной стек: Python 3, AsyncIO, FastAPI, aiogram 3, Telethon, PostgreSQL (asyncpg), SQLite, Git, Pytest.
-    Навыки: Работа с REST API, Webhooks, JSON/CSV, ООП, асинхронный парсинг, интеграция LLM API, базовый Docker, Linux.
-    Опыт: Есть 2 мощных завершенных проекта (SteamTrustFactor с 100% pytest покрытием и AI Job Hunter на асинхронном бэкенде).
+    user_profile = TARGET_ROLES
+    user_skill = SKILLS
+
+    """
+    [Текст вакансии]
+          │
+          ▼
+    ┌─────────────────────────┐
+    │  Этап 1: Быстрый фильтр │ ──(Есть слова из Blacklist?)──► [Пропуск / Игнор]
+    └─────────────────────────┘
+          │ (Нет)
+          ▼
+    ┌─────────────────────────┐
+    │ Этап 2: LLM-Анализ      │ ──(Отправка в Groq/LLaMA 3)───► [Оценка 1-10 + Вердикт]
+    └─────────────────────────┘
     """
 
     prompt = f"""
-    Ты — карьерый ментор и HR-эксперт. Оцени, подходит ли вакансия кандидату.
-    Профиль кандидата: {user_profile}
+    Ты - карьерый ментор и HR-эксперт. Оцени, подходит ли вакансия кандидату.
+    Желаемая роль кандидата: {user_profile}
+    Скилл кандата: {user_skill}
+    Черный лист слов/сообщений: {BLACKLIST}
     Текст вакансии: {job_text}
     
     ПРАВИЛА ОЦЕНКИ:
@@ -35,12 +46,22 @@ async def analyze_job(job_text: str):
     
     ответь СТРОГО в формате JSON:
     {{
-        "is_match" : true/false,
+        "is_match": boolean true/false,
         "reason": "короткое пояснение (1 предложение)",
-        "tech_stack": ["список", "технологий"]
+        "score": integer (0 до 100)
     }}
+    
     """
 
+    for word in BLACKLIST:
+        if word.lower() in job_text.lower():
+            return {
+                "is_match": False,
+                "score": 0,
+                "reason": 'Черный список'
+            }
+
+    print("🤖 Отправляем вакансию на анализ в Groq...")
     # Вызываем ИИ
     chat_completion = await client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
@@ -51,14 +72,16 @@ async def analyze_job(job_text: str):
     # Достаем ответ
     response_text = chat_completion.choices[0].message.content
 
+
     # Защита
     try:
         return json.loads(response_text)
+
     except json.decoder.JSONDecodeError:
         return {
             "is_match": False,
             "reason": "Ошибка парсинга ответа от ИИ",
-            "tech_stack": []
+            "score": 0
     }
 
 if __name__ == "__main__":
@@ -73,11 +96,12 @@ if __name__ == "__main__":
     """
 
     async def main():
-        print("🤖 Отправляем вакансию на анализ в Groq...")
         result = await analyze_job(test_job)
         print("\n✅ ОТВЕТ ОТ НЕЙРОСЕТИ:")
         print(result)
         print(f"Подходит? -> {result.get('is_match')}")
         print(f"Причина -> {result.get('reason')}")
+        print(f"Оценка -> {result.get('score')}")
+
 
     asyncio.run(main())

@@ -1,14 +1,7 @@
-"""
-[Текст вакансии]
-      │
-      ▼
-┌─────────────────────────┐
-│  Этап 1: Быстрый фильтр │ ──(Есть слова из Blacklist?)──► [Пропуск / Игнор]
-└─────────────────────────┘
-      │ (Нет)
-      ▼
-┌─────────────────────────┐
-│ Этап 2: LLM-Анализ      │ ──(Отправка в Groq/LLaMA 3)───► [Оценка 1-10 + Вердикт]
-└─────────────────────────┘
-"""
+
+TARGET_ROLES = ['Python Junior', 'Backend Developer', 'AI intern', 'Стажер Python']
+
+SKILLS = ['Python', 'FastAPI', 'PostgreSQL', 'Git', 'asyncpg', 'Telethon', 'aiogram', 'aiohttp', 'Docker', 'OOP']
+
+BLACKLIST = ['1C', 'PHP', 'C++', 'C#', 'Salesforce', 'Teacher', 'Преподователь', 'Менеджер по продажам', 'Курьер']
 
